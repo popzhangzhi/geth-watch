@@ -15,7 +15,7 @@ func main() {
 	//a:="1G9jn5cBMWD6y8CgRtAFFNzu9HmkMywyx4"
 	//b:=strings.Count(a,"")-1
 	//fmt.Println(b)
-	//test
+
 	//连接rpc客服端
 	client, err := rpc.Dial("http://localhost:8545")
 
