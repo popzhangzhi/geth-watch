@@ -27,8 +27,10 @@
     geth最新稳定版本为1.8.10.而我当前的是github上不稳定的包 1.8.11
 
     -dev 开启私有链
-    src/go-ethereum/build/bin/geth  --datadir src/geth-test/datadir --rpc --rpcapi "db,eth,net,web3,miner,personal"  --rpcaddr "127.0.0.1"  --dev console
+    src/github.com/ethereum/go-ethereum/build/bin/geth  --datadir geth-test/datadir --rpc --rpcapi "db,eth,net,web3,miner,personal"   --dev console
 
+
+    eth.sendTransaction({from:"0xbaff87a555373dd0358035b77508c41eac84e8c8",to:"0x558FcdE4d3949880e0Ab240ba24cDd9f2c46aE1c",value:web3.toWei(50,"ether")})
     通过日志可以看到，在 dev 模式下，启动节点之后，
     会默认提供一个开发者账号：0x73d8e3e906f64103079cb9331a5274c288c633f5，
 
@@ -40,11 +42,23 @@
 
     --rpcaddr "192.168.0.29" 设置暴露对外的ip节点
 
+    miner.start(1)
+    miner.stop()
+
+    govendor add +e 增加所有外包依赖，手动复制C的libsecp256k1文件夹，增加了所有geth的依赖
+
+    go调用包的熟悉，优先本项目->该路劲下的vendor->该上级目录的的包（gopath的外部包）
+
+
+
 ### javascript操作命令
     这个账号会作为当前的 coinbase 账号，在 keystore 目录下也有对应的加密私钥文件。
 
     eth.accounts
     eth.blockNumber
+    eth.getBlock(11)
+    eth.getTransaction(hash)
+    eth.getTransactionReceipt(hash)
     personal.newAccount("zhangzhi") //0x8408cbf887d3de46a76c83db0538231e5aa4cdb4
     personal.newAccount("123456") //0x83a7fb46762881a4b73bf1f2da7eae8b7809b50f
     personal.newAccount()
@@ -53,7 +67,7 @@
     admin = eth.accounts[0]
     eth.getBalance(eth.accounts[0])
 
-    eth.sendTransaction({from:"0x73d8e3e906f64103079cb9331a5274c288c633f5",to:"0x8408cbf887d3de46a76c83db0538231e5aa4cdb4",value:web3.toWei(50,"ether")})
+    eth.sendTransaction({from:"0xbaff87a555373dd0358035b77508c41eac84e8c8",to:"0x5DE5c59330DAe02A48dE228AAdbfDAFCC0b10e1C",value:web3.toWei(50,"ether")})
 
     eth.sendTransaction({from:"0x8408cbf887d3de46a76c83db0538231e5aa4cdb4",to:"0x83a7fb46762881a4b73bf1f2da7eae8b7809b50f",value:web3.toWei(50,"ether")})
 ### 个人权限操作交易，输入密码形式，慎用
