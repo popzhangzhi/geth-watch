@@ -1,10 +1,19 @@
 ### geth-dirver
-    todo:该项目用于调用geth节点，提供api接口给尚币相关业务逻辑.利用geth源码操作eth节点
-#### geth-testnet
-    该目录为go-ethereum的运行testnet环境时的datadir保存节点相关信息
-##### src/github.com/etherum/go-ethereum
-    为eth节点源码目录,为构建项目放在了github下
+    todo:该项目用于调用geth节点，提供api接口给相关业务.与geth节点进行交互。
+        对项目进行解耦封包
+        已实现创建离线地址
+        已实现转账签名，支撑外部地址，内部地址，考虑了nonce问题，gas、gasLimit、gasPrice均可以设置，
+        不设置，先有限请求链上接口获取建议值，失败后，会设置默认值
+        已实现查询当前余额
 
+        简易webserver接口服务
+
+
+
+#### geth-testnet
+    该目录为go-ethereum的运行testnet环境时的datadir保存节点目录
+##### src/github.com/etherum/go-ethereum
+    为了方便调试,为构建项目放在了github下
 ## 以下为eth节点相关启动和console交互命令
 
 ### product environment
