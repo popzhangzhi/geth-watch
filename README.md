@@ -68,6 +68,9 @@
     eth.getBlock(11)
     eth.getTransaction(hash)
     eth.getTransactionReceipt(hash)
+    txpool.status
+    txpool.inspect.pending
+
     personal.newAccount("zhangzhi") //0x8408cbf887d3de46a76c83db0538231e5aa4cdb4
     personal.newAccount("123456") //0x83a7fb46762881a4b73bf1f2da7eae8b7809b50f
     personal.newAccount()

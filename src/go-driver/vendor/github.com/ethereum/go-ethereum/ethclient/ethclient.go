@@ -504,3 +504,21 @@ func toCallArg(msg ethereum.CallMsg) interface{} {
 	}
 	return arg
 }
+
+func (ec *Client) WatchNewBlockFilter(ctx context.Context) (error, interface{}) {
+	var rel interface{}
+	return ec.c.CallContext(ctx, &rel, "eth_newBlockFilter"), rel
+
+}
+
+func (ec *Client) GetNewFilterChanges(ctx context.Context, filterId string) (error, interface{}) {
+	var rel interface{}
+	return ec.c.CallContext(ctx, &rel, "eth_getFilterChanges", filterId), rel
+
+}
+
+func (ec *Client) GetNewFilterLog(ctx context.Context, filterId string) (error, interface{}) {
+	var rel interface{}
+	return ec.c.CallContext(ctx, &rel, "eth_getFilterLogs", filterId), rel
+
+}
