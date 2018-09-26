@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
-	"go-driver/blockDriver"
+
+	"go-driver/controller"
+	"time"
 )
 
 var (
@@ -20,20 +22,36 @@ var (
 )
 
 func main() {
+	controller.Generate()
 	//blockDriver.DoCreate()
 
 	//blockDriver.SendRowTransaction(from, fromPrivateKey, address2, int64(params.Ether), 0, 0)
 
-	account := [...]string{coinbase, from, address, address2}
+	//account := [...]string{coinbase, from, address, address2}
 
-	for _, str := range account {
-		a, _ := blockDriver.GetBalance(str)
-		fmt.Println(str, a)
-	}
+	//for _, str := range account {
+	//	a, _ := blockDriver.GetBalance(str)
+	//	fmt.Println(str, a)
+	//}
 
 	//blockDriver.WatchNewBlock()
 
 	//24到29
-	blockDriver.GetNewBlock()
+	//blockDriver.GetNewBlock()
+	//daemon()
 
+}
+
+/**
+守护进程
+*/
+
+func daemon() {
+	timer1 := time.NewTicker(2 * time.Second)
+	for {
+		select {
+		case <-timer1.C:
+			fmt.Println("123213")
+		}
+	}
 }

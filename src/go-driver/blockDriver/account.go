@@ -3,7 +3,6 @@ package blockDriver
 import (
 	"crypto/ecdsa"
 	crand "crypto/rand"
-	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -16,7 +15,6 @@ import (
 func DoCreate() (string, string, error) {
 	rand := crand.Reader
 	address, privateKey, err := storeNewKey(rand)
-	fmt.Println(address, ":", privateKey)
 	return address, privateKey, err
 
 }
