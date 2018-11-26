@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 
-	"go-driver/controller"
+	"go-driver/blockDriver"
 	"time"
 )
 
 var (
-	coinbase = "0xbaff87a555373dd0358035b77508c41eac84e8c8"
+	coinbase = "0x0b90ba04fc3520666297a1da31b1f5ff313a475b"
 	//发送地址
 	from           = "0x558FcdE4d3949880e0Ab240ba24cDd9f2c46aE1c"
 	fromPrivateKey = "8e2cdff2c37ae8aad4c0ff102a84f8f0e0a23549a83cc01598d8089ad82e1a15"
@@ -22,17 +22,15 @@ var (
 )
 
 func main() {
-	controller.Generate()
-	//blockDriver.DoCreate()
 
-	//blockDriver.SendRowTransaction(from, fromPrivateKey, address2, int64(params.Ether), 0, 0)
+	//controller.Generate()
 
-	//account := [...]string{coinbase, from, address, address2}
+	account := [...]string{coinbase, from, address, address2}
 
-	//for _, str := range account {
-	//	a, _ := blockDriver.GetBalance(str)
-	//	fmt.Println(str, a)
-	//}
+	for _, str := range account {
+		a, _ := blockDriver.GetBalance(str)
+		fmt.Println(str, a, "ETH")
+	}
 
 	//blockDriver.WatchNewBlock()
 
@@ -42,7 +40,7 @@ func main() {
 
 }
 
-/**
+/*
 守护进程
 */
 

@@ -4,8 +4,8 @@ import "go-driver/blockDriver"
 import log "go-driver/common"
 
 var (
-	systemNum = 10
-	userNum   = 200000
+	systemNum = 3
+	userNum   = 10
 )
 
 func init() {}

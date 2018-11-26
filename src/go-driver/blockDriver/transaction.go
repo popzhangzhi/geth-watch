@@ -6,69 +6,18 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/cmd/utils"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/rpc"
 	"math/big"
 	"strconv"
 )
-
-var client *ethclient.Client
-
-func init() {
-	doEthclientDial()
-	//doRpcRowDial()
-}
-
-//原生rpc连接
-//查询当前节点账号和余额
-func doRpcRowDial() {
-
-	//连接rpc客服端
-	client, err := rpc.Dial("http://localhost:8545")
-
-	if err != nil {
-		fmt.Println("rpc.Dial err", err)
-		return
-	}
-	//查询是、当前节点拥有的账号
-	var account []string
-	err = client.Call(&account, "eth_accounts")
-	//account = append(account, from)
-	//account = append(account, address)
-	if err != nil {
-		fmt.Println("client.Call err", err)
-		return
-	}
-	//查询addr对应的余额
-	var balance hexutil.Big
-	for _, str := range account {
-		err = client.Call(&balance, "eth_getBalance", str, "latest")
-		//fmt.Println(balance)
-		fmt.Printf("%v:%d\n", str, (*big.Int)(&balance))
-	}
-	fmt.Println("------------------------")
-
-}
-
-//ethclient方式连接
-func doEthclientDial() {
-	var err error
-	client, err = ethclient.Dial("http://localhost:8545")
-	if err != nil {
-		fmt.Println("ethclient.Dial err", err)
-	}
-
-}
 
 //获取当前金额
 func GetBalance(address string) (float64, error) {
 	targetAddress := common.HexToAddress(address)
 	ctx := context.Background()
-	balance, err := client.BalanceAt(ctx, targetAddress, nil)
+	balance, err := Client.BalanceAt(ctx, targetAddress, nil)
 
 	return FromWei(balance), err
 }
@@ -105,14 +54,14 @@ func SendRowTransaction(from string, fromPrivateKey string, to string, amount in
 	//防止覆盖，相同nonce会覆盖交易，相同nonce，且手续费用大于之前的可以覆盖，否则报错replacement transaction underpriced异常
 	//pending值会出现在交易拥挤，手续费不高
 	//queued 会出现在nonce值过高，只有值连续不断才能把nonce高值加入pending
-	nonce, err := client.PendingNonceAt(ctx, fromAddress)
+	nonce, err := Client.PendingNonceAt(ctx, fromAddress)
 	if err != nil {
 		fmt.Println("nonce", err)
 	}
 	//最多消化gas的数据，多余退回，默认一次转账不带data为 21000
 	if gasLimit == 0 {
 		call := ethereum.CallMsg{fromAddress, &toAddress, uint64(0), new(big.Int), big.NewInt(amount), nil}
-		estimategas, err := client.EstimateGas(ctx, call)
+		estimategas, err := Client.EstimateGas(ctx, call)
 		if err != nil {
 			fmt.Println("estimategas", err)
 		}
@@ -121,7 +70,7 @@ func SendRowTransaction(from string, fromPrivateKey string, to string, amount in
 	//每个gas对应的eth的价格，单位wei 1*10^11 = 0.0000001eth 1e-7*21000
 	var gasPriceBigInt *big.Int
 	if gasPrice == 0 {
-		gasPriceBigInt, err = client.SuggestGasPrice(ctx)
+		gasPriceBigInt, err = Client.SuggestGasPrice(ctx)
 		if err != nil {
 			fmt.Println("suggestGasPrice", err)
 			gasPrice = 100000000000
@@ -145,7 +94,7 @@ func SendRowTransaction(from string, fromPrivateKey string, to string, amount in
 	fmt.Println("transaction.amount", Transaction.Value())
 	fmt.Println("transaction.nonce", Transaction.Nonce())
 
-	err, rel := client.SendTransaction(ctx, Transaction)
+	err, rel := Client.SendTransaction(ctx, Transaction)
 	if err != nil {
 		fmt.Println("SendTransaction", err)
 		return ""
@@ -170,7 +119,7 @@ func SendRowTransaction(from string, fromPrivateKey string, to string, amount in
 //注意失效，只有创建后的交易才会记录，该id存在内存中，重启节点后，需要重启开启
 func WatchNewBlock() {
 	ctx := context.Background()
-	err, filterId := client.WatchNewBlockFilter(ctx)
+	err, filterId := Client.WatchNewBlockFilter(ctx)
 	if err != nil {
 		fmt.Println("watchNewBlock", err)
 	}
@@ -188,7 +137,7 @@ func GetNewBlock() {
 
 	ctx := context.Background()
 	//err, rel := client.GetNewFilterChanges(ctx, "0xe2640ac978ce082a5bdb5316c3b00d11")
-	err, rel := client.GetNewFilterLog(ctx, "0xe2640ac978ce082a5bdb5316c3b00d11")
+	err, rel := Client.GetNewFilterLog(ctx, "0xe2640ac978ce082a5bdb5316c3b00d11")
 	if err != nil {
 		fmt.Println("getNewBlock", err)
 	}

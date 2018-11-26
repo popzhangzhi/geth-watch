@@ -1,0 +1,5 @@
+package blockDriver
+
+func CreateContract() {
+
+}
