@@ -1,21 +1,24 @@
 package main
 
 import (
-	. "core/common"
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	. "go-driver/common"
 	"go-driver/controller"
 	"os"
 	"os/exec"
+	"strconv"
 	"time"
 )
 
+const commandName = "gethWatch"
+
 //root命令声明
 var rootCmd = &cobra.Command{
-	Use: "cr",
+	Use: commandName,
 	Run: func(cmd *cobra.Command, args []string) {
-		println("cr help to see more command")
+		println("输入 " + commandName + " help 来查看更多命令")
 
 	},
 }
@@ -23,16 +26,16 @@ var rootCmd = &cobra.Command{
 //start命令声明
 var startCmd = &cobra.Command{
 	Use:   "start",
-	Short: "Start cr",
+	Short: "Start " + commandName,
 	Run: func(cmd *cobra.Command, args []string) {
-		IoStartLog("-------------------------------------------------")
+		IoBr()
 		IoStartLog("startCmd...")
-		command := exec.Command("cr_go", "main")
+		command := exec.Command(commandName, "main")
 		error := command.Start()
 		if error != nil {
-			IoStartLogErr("cr_go main", fmt.Sprint(error))
+			IoStartLogErr("main", fmt.Sprint(error))
 		}
-		IoStartLog(fmt.Sprintf("cr start, [PID] %d running...", command.Process.Pid))
+		IoStartLog(fmt.Sprintf(commandName+" start, [PID] %d running...", command.Process.Pid))
 
 		RecordPid([]byte(fmt.Sprintf("%d", command.Process.Pid)))
 
@@ -44,17 +47,17 @@ var startCmd = &cobra.Command{
 //main 命令声明
 var mainCmd = &cobra.Command{
 	Use:    "main",
-	Short:  "The cr main action",
+	Short:  "The " + commandName + " main action",
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		controller.Generate()
+
 	},
 }
 
 //stop命令声明
 var stopCmd = &cobra.Command{
 	Use:   "stop",
-	Short: "Stop cr",
+	Short: "Stop " + commandName,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		strb, err := ReadPid()
@@ -63,48 +66,66 @@ var stopCmd = &cobra.Command{
 			IoStartLogErr("readPid", fmt.Sprint(err))
 		}
 		if strb == "0" {
-			println("cr is not running")
+			println(commandName + " is not running")
 			os.Exit(0)
 		}
 		command := exec.Command("kill", strb)
 		err = command.Start()
 
 		if err != nil {
-			IoStartLogErr("stop cr err:", fmt.Sprint(err))
+			IoStartLogErr("stop "+commandName+" err:", fmt.Sprint(err))
 		} else {
 			//清空pid
 			ClearPid()
-			IoStartLog("cr stop")
+			IoStartLog(commandName + " stop")
 		}
 
-		IoStartLog("-------------------------------------------------")
+		IoBr()
 	},
 }
 
 //restart命令声明
 var restartCmd = &cobra.Command{
 	Use:   "restart",
-	Short: "restart cr",
+	Short: "restart " + commandName,
 	Run: func(cmd *cobra.Command, args []string) {
-		IoStartLog("-------------------------------------------------")
+		IoBr()
 		IoStartLog("restartCmd...")
 		stab, err := ReadPid()
 		if err != nil {
 			IoStartLogErr("readPid", fmt.Sprint(err))
 		}
 		if stab != "0" {
-			command := exec.Command("cr_go", "stop")
+			command := exec.Command(commandName, "stop")
 			error := command.Start()
 			if error != nil {
-				IoStartLogErr("cr_go stop", fmt.Sprint(error))
+				IoStartLogErr(commandName+" stop", fmt.Sprint(error))
 			}
 		}
-		command := exec.Command("cr_go", "start")
+		command := exec.Command(commandName, "start")
 		error := command.Start()
 		if error != nil {
-			IoStartLogErr("cr_go start", fmt.Sprint(error))
+			IoStartLogErr(commandName+" start", fmt.Sprint(error))
 		}
 
+	},
+}
+
+var GenerateAddrCmd = &cobra.Command{
+	Use:   "generateAddr",
+	Short: "generateAddr [num] 建议测试时生成1000",
+	Run: func(cmd *cobra.Command, args []string) {
+
+		IoBr()
+		IoStartLog("generateAddr 开始...")
+		num, err := strconv.Atoi(args[0])
+		if err != nil {
+			fmt.Println("输入数量非整形", err)
+			os.Exit(1)
+		}
+		controller.Generate(num)
+		IoStartLog("generateAddr 生成地址完成")
+		IoBr()
 	},
 }
 
@@ -130,6 +151,7 @@ func init() {
 	rootCmd.AddCommand(mainCmd)
 	rootCmd.AddCommand(stopCmd)
 	rootCmd.AddCommand(restartCmd)
+	rootCmd.AddCommand(GenerateAddrCmd)
 
 }
 
@@ -139,7 +161,6 @@ func init() {
 */
 var RuntimeViper *viper.Viper
 
-//var cfgFile string = "/Users/zhangzhi/go/codeReview/src/core/cr.yaml"
 var cfgFile string
 
 func initConfig() {
@@ -148,24 +169,15 @@ func initConfig() {
 		//设置指定的文件，全路径
 		viper.SetConfigFile(cfgFile)
 	} else {
-		// Find home directory.
-
-		//dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-		//fmt.Println(dir)
-		//home, err := homedir.Dir()
-		//fmt.Println(home)
-		//if err != nil {
-		//	fmt.Println(err)
-		//	os.Exit(1)
-		//}
 		//多路径查找配置，查找当前目录
-		viper.AddConfigPath(".")
+		viper.AddConfigPath("./")
+
 		//查找名字为cr的文件名（不包含扩展名）
 		viper.SetConfigName("cr")
 	}
 
 	if err := viper.ReadInConfig(); err != nil {
-		println("找不到配置文件cr", err)
+		fmt.Println("找不到配置文件cr.yaml", err)
 		os.Exit(1)
 	}
 	RuntimeViper = viper.GetViper()
