@@ -1,0 +1,10 @@
+base:
+    debug: true
+path:
+    startLog: "./start.log"
+    crLockFile: "./cr.lock"
+svn:
+    php: "https://192.168.8.132/svn/sobee/php/branches"
+    html: "https://192.168.8.132/svn/sobee/html/branches"
+    ios: "https://192.168.8.132/svn/sobee/ios/branches"
+    android: "https://192.168.8.132/svn/sobee/android/branches"

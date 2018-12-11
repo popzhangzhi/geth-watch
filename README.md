@@ -9,9 +9,6 @@
         简易webserver接口服务
 
 
-
-#### geth-testnet
-    该目录为go-ethereum的运行testnet环境时的datadir保存节点目录
 ##### src/github.com/etherum/go-ethereum
     为了方便调试,为构建项目放在了github下
 ## 以下为eth节点相关启动和console交互命令
@@ -36,22 +33,23 @@
     geth最新稳定版本为1.8.10.而我当前的是github上不稳定的包 1.8.11
 
     -dev 开启私有链
-    src/github.com/ethereum/go-ethereum/build/bin/geth  --datadir geth-test/datadir --rpc --rpcapi "db,eth,net,web3,miner,personal"   --dev console
-
+    src/github.com/ethereum/go-ethereum/build/bin/geth  --datadir geth-dev/datadir --rpc --rpcapi "db,eth,net,web3,miner,personal"   --dev console
+    src/github.com/ethereum/go-ethereum/build/bin/geth  attach rpc:geth-dev/datadir/geth.ipc
 
     eth.sendTransaction({from:"0xbaff87a555373dd0358035b77508c41eac84e8c8",to:"0x558FcdE4d3949880e0Ab240ba24cDd9f2c46aE1c",value:web3.toWei(50,"ether")})
     通过日志可以看到，在 dev 模式下，启动节点之后，
     会默认提供一个开发者账号：0x73d8e3e906f64103079cb9331a5274c288c633f5，
 
     --testnet 开启测试链，加入eth 测试节点
-    src/github.com/ethereum/go-ethereum/build/bin/geth  --datadir geth-testnet/datadir --rpc --rpcapi "db,eth,net,web3,miner,personal"   --testnet
+    src/github.com/ethereum/go-ethereum/build/bin/geth  --datadir geth-testnet/datadir --rpc --rpcapi "db,eth,net,web3,miner,personal"   --rinkeby --syncmode "fast"
+
 
     通过geth.ipc进入JavaScript控制台
     src/github.com/ethereum/go-ethereum/build/bin/geth  attach rpc:geth-testnet/datadir/geth.ipc
 
     --rpcaddr "192.168.0.29" 设置暴露对外的ip节点
 
-    miner.start(1)
+    miner.start(1) //本地开启一核进行挖矿，不传参数默认开始所有内核
     miner.stop()
 
     govendor add +e 增加所有外包依赖，手动复制C的libsecp256k1文件夹，增加了所有geth的依赖

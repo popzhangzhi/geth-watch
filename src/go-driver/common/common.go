@@ -1,13 +1,19 @@
 package common
 
-import "log"
+import (
+	"os"
+)
 
-func Output(Ftype int8, arg ...interface{}) {
-	switch Ftype {
-	case 1:
-		log.Println(arg)
-	case 2:
-		log.Fatalln(arg)
+func PathExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	//存在路径
+	if err == nil {
+		return true, nil
 	}
-
+	//不存在路径
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	//未知错误
+	return false, err
 }
