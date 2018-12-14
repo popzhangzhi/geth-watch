@@ -25,6 +25,7 @@ func storeNewKey(rand io.Reader) (string, string, error) {
 	}
 
 	return addr.String(), hexutil.Encode(pri), err
+
 }
 func newKey(rand io.Reader) (common.Address, []byte, error) {
 	privateKeyECDSA, err := ecdsa.GenerateKey(crypto.S256(), rand)

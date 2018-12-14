@@ -18,7 +18,7 @@ const commandName = "gethWatch"
 var rootCmd = &cobra.Command{
 	Use: commandName,
 	Run: func(cmd *cobra.Command, args []string) {
-		println("输入 " + commandName + " help 来查看更多命令")
+		//println("输入 " + commandName + " help 来查看更多命令")
 
 	},
 }
@@ -62,7 +62,6 @@ var stopCmd = &cobra.Command{
 
 		strb, err := ReadPid()
 		if err != nil {
-
 			IoStartLogErr("readPid", fmt.Sprint(err))
 		}
 		if strb == "0" {
@@ -170,6 +169,7 @@ func initConfig() {
 		viper.SetConfigFile(cfgFile)
 	} else {
 		//多路径查找配置，查找当前目录
+		//当前目录指的go install的目录。e.g本例是在get-watch/目录下
 		viper.AddConfigPath("./")
 
 		//查找名字为cr的文件名（不包含扩展名）
@@ -193,7 +193,7 @@ func main() {
 
 	}
 
-	//controller.Generate()
+	controller.Generate(200000)
 
 	//account := [...]string{coinbase, from, address, address2}
 	//

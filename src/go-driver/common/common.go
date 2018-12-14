@@ -1,9 +1,10 @@
 package common
 
-import (
-	"os"
-)
+import "os"
 
+/*
+判断文件或者目录存在不存在
+*/
 func PathExists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	//存在路径

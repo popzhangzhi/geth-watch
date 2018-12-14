@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/spf13/viper"
 	"io"
+	"io/ioutil"
 	"os"
 	"time"
 )
@@ -103,6 +104,11 @@ func IoLog(filename string, data []byte) ([]byte, error) {
 		return context, nil
 	}
 
+	return IoFile(filename, data)
+}
+
+func IoFile(filename string, context []byte) ([]byte, error) {
+
 	fl, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		return nil, err
@@ -110,9 +116,17 @@ func IoLog(filename string, data []byte) ([]byte, error) {
 	defer fl.Close()
 
 	n, err := fl.Write(context)
-	if err == nil && n < len(data) {
+	if err == nil && n < len(context) {
 		err = io.ErrShortWrite
 	}
 	return nil, err
+}
+func IoReadFile(filename string) ([]byte, error) {
+	fl, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer fl.Close()
 
+	return ioutil.ReadAll(fl)
 }
