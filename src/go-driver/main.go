@@ -50,7 +50,7 @@ var mainCmd = &cobra.Command{
 	Short:  "The " + commandName + " main action",
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
-
+		controller.MainEntry()
 	},
 }
 
@@ -193,7 +193,8 @@ func main() {
 
 	}
 
-	controller.Generate(200000)
+	//controller.Generate(200000)
+	controller.MainEntry()
 
 	//account := [...]string{coinbase, from, address, address2}
 	//

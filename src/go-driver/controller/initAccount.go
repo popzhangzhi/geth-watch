@@ -19,26 +19,17 @@ var (
 
 func init() {}
 
+/*
+	生成地址路口
+*/
 func Generate(userNum int) {
+	//debug
+	//os.Remove(addressFile)
+	//os.Remove(secretKeyFile)
+	//os.Remove("./orginKey")
 
-	//解密秘钥文件
-	rsaOrginData, err := ioutil.ReadFile("test")
-
-	if err != nil {
-		fmt.Println(err)
-	}
-	rsaData, err := tools.RsaDecrypt(rsaOrginData[0:128])
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(string(rsaData))
-
-	os.Exit(1)
-
-	os.Remove(addressFile)
-	os.Remove(secretKeyFile)
 	//检查文件是否存在，存在不生成
-	check, err := checkBeforeenerate()
+	check, err := checkBeforeGenerate()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -47,11 +38,10 @@ func Generate(userNum int) {
 		os.Exit(1)
 	}
 	//开始生成地址，输入2次密码
-	//pwd := inputPwd()
-	//fmt.Println(pwd)
+	pwd := inputPwd(0)
+	//生成地址
 	var addresses []byte
 	var secretKey []byte
-
 	for i := 0; i < systemNum+userNum; i++ {
 		addr, priKey, err := blockDriver.DoCreate()
 		if err != nil {
@@ -64,21 +54,25 @@ func Generate(userNum int) {
 	}
 	//保持成文件，并加密秘钥
 	ioutil.WriteFile(addressFile, addresses, 0666)
-
-	ioutil.WriteFile(secretKeyFile, secretKey, 0666)
-
-	fmt.Println(len(secretKey))
-	//分段加密 deter = total%17 +100 保证减少加密rsa次数
-
-	status, err := tools.RsaEncryptBigData(secretKey, 100)
+	//保存未加密秘钥文件，正式环境应该注释
+	//ioutil.WriteFile(`orginKey`, secretKey, 0666)
+	// 进行异或混淆。对一值，异或2次同一值，得到最初值。
+	xorSecretKey := tools.OxrSecrectKey(secretKey, pwd)
+	//对文件进行rsa加密
+	rsaData, err := tools.RsaEncryptBigData(xorSecretKey, 117)
+	//保存混淆后的文件
+	ioutil.WriteFile(secretKeyFile, rsaData, 0666)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(status)
+	DecodeSecretKey([]byte("123456"))
 
 }
 
-func checkBeforeenerate() (bool, error) {
+/*
+	生成地址对之前的检查
+*/
+func checkBeforeGenerate() (bool, error) {
 	addrIsset, _ := common.PathExists(addressFile)
 	secretkeyIsset, _ := common.PathExists(secretKeyFile)
 	if !addrIsset && !secretkeyIsset {
@@ -96,10 +90,16 @@ func checkBeforeenerate() (bool, error) {
 
 }
 
-func inputPwd() string {
-	fmt.Println("输入生成秘钥对的自定义密码(6位以上)")
+/*
+	0 新建密码，二次确认
+	1 输入密码
+*/
+func inputPwd(flag int) []byte {
+	if flag == 0 {
+		fmt.Println("输入生成秘钥对的自定义密码(6位以上)")
+	}
 	fmt.Print("密码:")
-	//todo 密文输入密码，以下方法报错
+	//todo 密文输入密码，以下方法报错 需要考虑win linux mac
 	//bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 	//if err != nil {
 	//	fmt.Println(err)
@@ -120,6 +120,9 @@ func inputPwd() string {
 
 		if pwdTime == "first" {
 			pwd = input
+			if flag == 1 {
+				break
+			}
 			pwdTime = "second"
 			fmt.Print("再次输入密码:")
 		} else {
@@ -134,5 +137,5 @@ func inputPwd() string {
 
 	}
 
-	return pwd
+	return []byte(pwd)
 }

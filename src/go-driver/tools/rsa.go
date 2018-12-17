@@ -4,12 +4,9 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
-	"encoding/base64"
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"math"
 )
 
 // 可通过openssl产生
@@ -43,33 +40,16 @@ GQD6QzKY1Y8xS+FoQQIDAQAB
 -----END PUBLIC KEY-----    
 `)
 
-//（1）加密：采用sha1算法加密后转base64格式
-func RsaEncryptWithSha1Base64(originalData, publicKey string) (string, error) {
-	key, _ := base64.StdEncoding.DecodeString(publicKey)
-	pubKey, _ := x509.ParsePKIXPublicKey(key)
-	encryptedData, err := rsa.EncryptPKCS1v15(rand.Reader, pubKey.(*rsa.PublicKey), []byte(originalData))
-	return base64.StdEncoding.EncodeToString(encryptedData), err
-}
+/*
+	rsa加密，支持大数据分片加密
+*/
+func RsaEncryptBigData(data []byte, deter int) ([]byte, error) {
 
-//（2）解密：对采用sha1算法加密后转base64格式的数据进行解密（私钥PKCS1格式）
-func RsaDecryptWithSha1Base64(encryptedData, privateKey string) (string, error) {
-	encryptedDecodeBytes, err := base64.StdEncoding.DecodeString(encryptedData)
-	if err != nil {
-		return "", err
-	}
-	key, _ := base64.StdEncoding.DecodeString(privateKey)
-	prvKey, _ := x509.ParsePKCS1PrivateKey(key)
-	originalData, err := rsa.DecryptPKCS1v15(rand.Reader, prvKey, encryptedDecodeBytes)
-	return string(originalData), err
-}
-
-func RsaEncryptBigData(data []byte, deter int) (bool, error) {
 	if deter > 117 {
-		return false, errors.New("rsa加密当前不能超过117")
+		return nil, errors.New("rsa加密当前不能超过117")
 	}
-	total := len(data)
-	time := math.Ceil(float64(total) / float64(deter))
-	fmt.Println(total, deter, time)
+
+	time := CountDividCeil(len(data), deter)
 
 	var rsaData []byte
 	for i := 0; i < int(time); i++ {
@@ -83,13 +63,42 @@ func RsaEncryptBigData(data []byte, deter int) (bool, error) {
 		if err != nil {
 			fmt.Println("文件分段加密错误", err)
 		}
+		rsaData = append(rsaData, tempRsa...)
+
+	}
+
+	return rsaData, nil
+}
+
+/*
+	rsa解密，支持大数据解密
+*/
+
+func RsaDecryptBigData(data []byte) ([]byte, error) {
+	deter := 128
+
+	total := len(data)
+	time := CountDividCeil(total, deter)
+
+	var rsaData []byte
+	for i := 0; i < int(time); i++ {
+		var tempData []byte
+		if i == int(time)-1 {
+			tempData = data[i*deter:]
+		} else {
+			tempData = data[i*deter : (i+1)*deter]
+		}
+		tempRsa, err := RsaDecrypt(tempData)
+		if err != nil {
+			fmt.Println("文件分段解密错误", err)
+		}
 
 		rsaData = append(rsaData, tempRsa...)
 
 	}
-	ioutil.WriteFile("test", rsaData, 0666)
 
-	return true, nil
+	return rsaData, nil
+
 }
 
 // 加密
