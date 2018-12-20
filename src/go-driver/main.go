@@ -158,7 +158,6 @@ func init() {
 读取配置文件
 如果没有配置cfgFile文件路径，将会自动获取home目录路径
 */
-var RuntimeViper *viper.Viper
 
 var cfgFile string
 
@@ -180,7 +179,6 @@ func initConfig() {
 		fmt.Println("找不到配置文件cr.yaml", err)
 		os.Exit(1)
 	}
-	RuntimeViper = viper.GetViper()
 
 }
 
@@ -193,7 +191,9 @@ func main() {
 
 	}
 
-	//controller.Generate(200000)
+	//生成20w地址耗时3分钟，mac 4核
+	//controller.Generate(3)
+	//解密20w秘钥耗时1分钟，环境同上
 	controller.MainEntry()
 
 	//account := [...]string{coinbase, from, address, address2}

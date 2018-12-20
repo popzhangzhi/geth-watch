@@ -2,7 +2,6 @@ package tools
 
 import (
 	"crypto/md5"
-	"fmt"
 )
 
 /*
@@ -21,8 +20,8 @@ func EncodeXOR(data []byte, xorBit [16]byte) []byte {
 
 	total := len(data)
 	time := CountDividCeil(total, 16)
-
-	fmt.Println(`xor分片`, total, 16, time)
+	//debug
+	//	fmt.Println(`xor分片`, total, 16, time)
 
 	var xorData []byte
 	for i := 0; i < int(time); i++ {

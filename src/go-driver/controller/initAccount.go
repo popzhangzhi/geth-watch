@@ -65,7 +65,6 @@ func Generate(userNum int) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	DecodeSecretKey([]byte("123456"))
 
 }
 

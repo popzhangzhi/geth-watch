@@ -104,9 +104,12 @@ func IoLog(filename string, data []byte) ([]byte, error) {
 		return context, nil
 	}
 
-	return IoFile(filename, data)
+	return IoFile(filename, context)
 }
 
+/*
+	写入文件，无格式
+*/
 func IoFile(filename string, context []byte) ([]byte, error) {
 
 	fl, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
@@ -121,6 +124,10 @@ func IoFile(filename string, context []byte) ([]byte, error) {
 	}
 	return nil, err
 }
+
+/*
+	读取文件
+*/
 func IoReadFile(filename string) ([]byte, error) {
 	fl, err := os.Open(filename)
 	if err != nil {
