@@ -32,7 +32,7 @@
     当前时间为2018.6.8号。
     geth最新稳定版本为1.8.10.而我当前的是github上不稳定的包 1.8.11
 
-    -dev 开启私有链
+    -dev 开启私有链r
     src/github.com/ethereum/go-ethereum/build/bin/geth  --datadir geth-dev/datadir --rpc --rpcapi "db,eth,net,web3,miner,personal"   --dev console
     src/github.com/ethereum/go-ethereum/build/bin/geth  attach rpc:geth-dev/datadir/geth.ipc
 
@@ -40,8 +40,8 @@
     通过日志可以看到，在 dev 模式下，启动节点之后，
     会默认提供一个开发者账号：0x73d8e3e906f64103079cb9331a5274c288c633f5，
 
-    --testnet 开启测试链，加入eth 测试节点
-    src/github.com/ethereum/go-ethereum/build/bin/geth  --datadir geth-testnet/datadir --rpc --rpcapi "db,eth,net,web3,miner,personal"   --rinkeby --syncmode "fast"
+    --rinkeby 开启测试链，加入eth 测试节点 //--rpcapi "db,eth,net,web3,miner,personal"
+    src/github.com/ethereum/go-ethereum/build/bin/geth  --datadir geth-testnet/datadir --rpc    --rinkeby --syncmode "fast"
 
 
     通过geth.ipc进入JavaScript控制台
@@ -77,7 +77,7 @@
     admin = eth.accounts[0]
     eth.getBalance(eth.accounts[0])
 
-    eth.sendTransaction({from:"0xbaff87a555373dd0358035b77508c41eac84e8c8",to:"0x5DE5c59330DAe02A48dE228AAdbfDAFCC0b10e1C",value:web3.toWei(50,"ether")})
+
 
     eth.sendTransaction({from:"0x8408cbf887d3de46a76c83db0538231e5aa4cdb4",to:"0x83a7fb46762881a4b73bf1f2da7eae8b7809b50f",value:web3.toWei(50,"ether")})
 ### 个人权限操作交易，输入密码形式，慎用

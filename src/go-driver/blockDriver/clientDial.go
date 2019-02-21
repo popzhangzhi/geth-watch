@@ -5,19 +5,17 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/spf13/viper"
 	"math/big"
 )
 
 var Client *ethclient.Client
 
-func init() {
-	doEthclientDial()
-}
-
 //ethclient方式连接
-func doEthclientDial() {
+func DoEthclientDial() {
+	url := viper.GetString(`node.rpcUrl`)
 	var err error
-	Client, err = ethclient.Dial("http://localhost:8545")
+	Client, err = ethclient.Dial(url)
 	if err != nil {
 		fmt.Println("ethclient.Dial err", err)
 	}
@@ -26,10 +24,10 @@ func doEthclientDial() {
 
 //原生rpc连接
 //查询当前节点账号和余额
-func doRpcRowDial() {
-
+func DoRpcRowDial() {
+	url := viper.GetString(`node.rpcUrl`)
 	//连接rpc客服端
-	client, err := rpc.Dial("http://localhost:8545")
+	client, err := rpc.Dial(url)
 
 	if err != nil {
 		fmt.Println("rpc.Dial err", err)

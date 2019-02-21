@@ -8,6 +8,8 @@ import (
 	单例实现全局配置
 */
 type runtimeSingleton struct {
+	//是否调试模式
+	Debug bool
 	//runtime 基础环境
 	RuntimeEnv map[string]interface{}
 	//runtime 业务
@@ -32,8 +34,9 @@ var once sync.Once
 func GetInstance() *runtimeSingleton {
 	once.Do(func() {
 
-		address := &addresses{}
+		address := &addresses{nil, nil, make(map[string][]byte)}
 		instance = &runtimeSingleton{
+			false,
 			make(map[string]interface{}),
 			make(map[string]interface{}),
 			address,
@@ -65,6 +68,16 @@ func (R *runtimeSingleton) GetEnv(name string) interface{} {
 
 }
 
+func (R *runtimeSingleton) SetDebug(debug bool) {
+	R.Debug = debug
+}
+
+/*
+	设置地址到运行时配置里
+	systems 系统地址
+	allAddresses 所有地址（含系统地址）
+	allAddresses 所有地址对应的私钥（含系统地址）
+*/
 func (R *runtimeSingleton) SetAddresses(systems [][]byte, allAddresses [][]byte, key map[string][]byte) {
 
 	R.addresses.systems = systems
@@ -74,7 +87,7 @@ func (R *runtimeSingleton) SetAddresses(systems [][]byte, allAddresses [][]byte,
 
 func (R *runtimeSingleton) GetKey(address string) []byte {
 
-	return R.addresses.allKey[address]
+	return (R.addresses.allKey[address])[2:]
 }
 
 func (R *runtimeSingleton) GetSystems() [][]byte {

@@ -9,27 +9,54 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
+	. "go-driver/common"
 	"math/big"
-	"strconv"
+	"strings"
 )
 
 //获取当前金额
-func GetBalance(address string) (float64, error) {
+func GetBalance(address string) (*big.Int, error) {
 	targetAddress := common.HexToAddress(address)
 	ctx := context.Background()
 	balance, err := Client.BalanceAt(ctx, targetAddress, nil)
 
-	return FromWei(balance), err
+	return balance, err
 }
 
-//转化成ether单位，主要用于友好调试，具体计算不能以这个为准
-func FromWei(wei *big.Int) float64 {
-	//fmt.Println(wei)
-	float, err := strconv.ParseFloat(wei.String(), 64)
-	if err != nil {
-		fmt.Println("转化成float64", err)
+//转化成ether单位,无误差，仅做调试显示使用，计算用big.Int处理
+func FromWei(wei *big.Int) string {
+	weiS := wei.String()
+	if weiS == `0` {
+		return `0`
 	}
-	return float / params.Ether
+	length := len(weiS)
+	var rel string
+	switch {
+	case length > 18:
+		//下标截取都是前包含后不包含，
+		end := weiS[length-18:]
+		pre := weiS[0 : length-18]
+		rel = pre + `.` + end
+		break
+	case length == 18:
+		rel = `0.` + weiS
+		break
+	case length < 18:
+		fill := strings.Repeat(`0`, 18-length)
+		rel = `0.` + fill + weiS
+		break
+
+	}
+	return rel
+}
+
+//18位精度，超过精度将舍弃
+func Towei(amount string) int64 {
+	x, _ := new(big.Int).SetString(amount, 10)
+	y := new(big.Int).SetUint64(params.Ether)
+	z := new(big.Int).Mul(x, y)
+	return z.Int64()
+
 }
 
 //eth.sendTransaction({from:"0xbaff87a555373dd0358035b77508c41eac84e8c8",to:"0x558FcdE4d3949880e0Ab240ba24cDd9f2c46aE1c",value:web3.toWei(50,"ether")})
@@ -43,12 +70,13 @@ func FromWei(wei *big.Int) float64 {
 	gasPrice       每个gas对应的eth的价格，单位wei。 0默认1*10^11 = 0.0000001eth
 
 */
-func SendRowTransaction(from string, fromPrivateKey string, to string, amount int64, gasLimit uint64, gasPrice int64) string {
+func SendRowTransaction(from string, fromPrivateKey string, to string, amountS string, gasLimit uint64, gasPrice int64) string {
 
 	//发送地址
 	fromAddress := common.HexToAddress(from)
 	//接受地址
 	toAddress := common.HexToAddress(to)
+	amount := Towei(amountS)
 	ctx := context.Background()
 	//适用范围在同一个地址，同一个节点内
 	//防止覆盖，相同nonce会覆盖交易，相同nonce，且手续费用大于之前的可以覆盖，否则报错replacement transaction underpriced异常
@@ -87,20 +115,18 @@ func SendRowTransaction(from string, fromPrivateKey string, to string, amount in
 		utils.Fatalf("Failed to load the private key: %v", err)
 	}
 	Transaction, _ = types.SignTx(Transaction, types.HomesteadSigner{}, key)
-
-	fmt.Println("transaction.data", Transaction.Data())
-	fmt.Println("transaction.gas", Transaction.Gas())
-	fmt.Println("transaction.gasprice", Transaction.GasPrice())
-	fmt.Println("transaction.amount", Transaction.Value())
-	fmt.Println("transaction.nonce", Transaction.Nonce())
-
+	if GetInstance().Debug {
+		fmt.Println("transaction.data", Transaction.Data())
+		fmt.Println("transaction.gas", Transaction.Gas())
+		fmt.Println("transaction.gasprice", Transaction.GasPrice())
+		fmt.Println("transaction.amount", FromWei(Transaction.Value()))
+		fmt.Println("transaction.nonce", Transaction.Nonce())
+	}
 	err, rel := Client.SendTransaction(ctx, Transaction)
 	if err != nil {
-		fmt.Println("SendTransaction", err)
+		IoStartLogErr(`SendTransaction`, fmt.Sprint(err))
 		return ""
 	} else {
-
-		fmt.Println("txid:", rel)
 		return rel
 	}
 
@@ -117,13 +143,14 @@ func SendRowTransaction(from string, fromPrivateKey string, to string, amount in
 
 //做监听，每次监听都生成不同的filterId
 //注意失效，只有创建后的交易才会记录，该id存在内存中，重启节点后，需要重启开启
-func WatchNewBlock() {
+func WatchNewBlock() string {
 	ctx := context.Background()
 	err, filterId := Client.WatchNewBlockFilter(ctx)
 	if err != nil {
 		fmt.Println("watchNewBlock", err)
 	}
-	fmt.Println(filterId)
+
+	return filterId.(string)
 	//0x71014d3030a97f16e54e5dced87441a6 0 timeout
 	//0x27c81ece4c628f6064d1b705880cf355 1 5.42 - 58 timeout 16
 
@@ -131,16 +158,32 @@ func WatchNewBlock() {
 	//0xffdcd82615f0bfc817621ca140950132 -- 5.42
 	//0x20490d36d2b8091047de433c622ac7bc  6.02-6.07
 	//0xe2640ac978ce082a5bdb5316c3b00d11 6.13
+
+	//19：09 10 11 13
 }
 
-func GetNewBlock() {
+/*
+	调用watchNewBlock接口后，根据fillterId来接受新块
+*/
+func GetNewBlock(filterId string) []string {
 
 	ctx := context.Background()
-	//err, rel := client.GetNewFilterChanges(ctx, "0xe2640ac978ce082a5bdb5316c3b00d11")
-	err, rel := Client.GetNewFilterLog(ctx, "0xe2640ac978ce082a5bdb5316c3b00d11")
-	if err != nil {
-		fmt.Println("getNewBlock", err)
-	}
-	fmt.Println(rel)
+	err, rel := Client.GetNewFilterChanges(ctx, filterId)
+	//err, rel := Client.GetNewFilterLog(ctx, filterId)
+	//结果
+	var res []string
 
+	if err != nil {
+		if GetInstance().Debug {
+			fmt.Println("getNewBlock", err)
+		}
+		return res
+	}
+
+	if rel != nil {
+		for _, v := range rel.([]interface{}) {
+			res = append(res, v.(string))
+		}
+	}
+	return res
 }

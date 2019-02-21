@@ -3,8 +3,46 @@ base:
 path:
     startLog: "./start.log"
     crLockFile: "./cr.lock"
-svn:
-    php: "https://192.168.8.132/svn/sobee/php/branches"
-    html: "https://192.168.8.132/svn/sobee/html/branches"
-    ios: "https://192.168.8.132/svn/sobee/ios/branches"
-    android: "https://192.168.8.132/svn/sobee/android/branches"
+# eth测试网络rinkeby
+node:
+    rpcUrl: "http://localhost:8545"
+
+sign:
+    signServerUrl: http://127.0.0.1:8999
+    chainID: 1
+
+wallet:
+    height: 5455676
+    coldAddress: 0xd64a30ad74f85dac6429f0f6398c5ec01dd757d8
+    maxStock: 1000
+    maxBalance: 1000
+    minBalance: 0
+    alarmtimeout: 10
+    phone: 008613800138000
+
+email:
+    url: 127.0.0.1:9080/email/send
+    sender: system@noreply.mail.bitmoga.com
+    reciever: xxxx@mobcolor.com
+
+sms:
+    url: http://127.0.0.1:8090/smsSend
+    proxy: montnets
+    type: 13
+
+api:
+    url: http://172.19.0.4:8152/finance/
+    id: chainup
+    secret: 123456
+
+surportCoin: eth
+eth:
+    cointype: 0
+    confirm: 6
+    coin: eth
+    maxStock: 10000
+    maxBalance: 20000
+    minBalance: 0
+    precision: 18
+    coldAddress: 0xd64a30ad74f85dac6429f0f6398c5ec01dd757d8
+    collectLimit: 0
