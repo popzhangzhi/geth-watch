@@ -13,6 +13,7 @@ var Client *ethclient.Client
 
 //ethclient方式连接
 func DoEthclientDial() {
+
 	url := viper.GetString(`node.rpcUrl`)
 	var err error
 	Client, err = ethclient.Dial(url)

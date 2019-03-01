@@ -180,6 +180,7 @@ func main() {
 	//生成20w地址耗时3分钟，mac 4核
 	//controller.Generate(3)
 	//解密20w秘钥耗时1分钟，环境同上
+
 	controller.MainEntry()
 
 }

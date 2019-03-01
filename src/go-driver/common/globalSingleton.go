@@ -22,8 +22,10 @@ type runtimeSingleton struct {
 type addresses struct {
 	//系统地址
 	systems [][]byte
-	//全地址
+	//全地址 []byte类型
 	allAddresses [][]byte
+	//全地址 string类型
+	allAddressesString []string
 	//全地址索引的秘钥
 	allKey map[string][]byte
 }
@@ -34,7 +36,7 @@ var once sync.Once
 func GetInstance() *runtimeSingleton {
 	once.Do(func() {
 
-		address := &addresses{nil, nil, make(map[string][]byte)}
+		address := &addresses{nil, nil, nil, make(map[string][]byte)}
 		instance = &runtimeSingleton{
 			false,
 			make(map[string]interface{}),
@@ -95,4 +97,16 @@ func (R *runtimeSingleton) GetSystems() [][]byte {
 }
 func (R *runtimeSingleton) GetAllAddresses() [][]byte {
 	return R.addresses.allAddresses
+}
+func (R *runtimeSingleton) GetAllAddressesToString() []string {
+	if len(R.addresses.allAddressesString) != 0 {
+		return R.addresses.allAddressesString
+	}
+	var rel []string
+	for _, v := range R.addresses.allAddresses {
+		rel = append(rel, string(v))
+
+	}
+	R.addresses.allAddressesString = rel
+	return rel
 }

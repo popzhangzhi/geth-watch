@@ -32,20 +32,23 @@
     当前时间为2018.6.8号。
     geth最新稳定版本为1.8.10.而我当前的是github上不稳定的包 1.8.11
 
+    2019.2.27 -更新geth版本到1.8.23.源码包也是1.8.23
+    该版本为稳定版本，更新了ethclient包的代码，项目需要重新兼容（该包支持拜占庭分支和修复的拜占庭分支问题的分支）
+
     -dev 开启私有链r
-    src/github.com/ethereum/go-ethereum/build/bin/geth  --datadir geth-dev/datadir --rpc --rpcapi "db,eth,net,web3,miner,personal"   --dev console
-    src/github.com/ethereum/go-ethereum/build/bin/geth  attach rpc:geth-dev/datadir/geth.ipc
+    develop-source/geth  --datadir geth-dev/datadir --rpc --rpcapi "db,eth,net,web3,miner,personal"   --dev console
+    develop-source/geth  attach rpc:geth-dev/datadir/geth.ipc
 
     eth.sendTransaction({from:"0xbaff87a555373dd0358035b77508c41eac84e8c8",to:"0x558FcdE4d3949880e0Ab240ba24cDd9f2c46aE1c",value:web3.toWei(50,"ether")})
     通过日志可以看到，在 dev 模式下，启动节点之后，
-    会默认提供一个开发者账号：0x73d8e3e906f64103079cb9331a5274c288c633f5，
+    会默认提供一个开发者账号：0x0b90ba04fc3520666297a1da31b1f5ff313a475b，
 
     --rinkeby 开启测试链，加入eth 测试节点 //--rpcapi "db,eth,net,web3,miner,personal"
-    src/github.com/ethereum/go-ethereum/build/bin/geth  --datadir geth-testnet/datadir --rpc    --rinkeby --syncmode "fast"
+    develop-source/geth  --datadir geth-testnet/datadir --rpc    --rinkeby --syncmode "fast"
 
 
     通过geth.ipc进入JavaScript控制台
-    src/github.com/ethereum/go-ethereum/build/bin/geth  attach rpc:geth-testnet/datadir/geth.ipc
+    develop-source/geth  attach rpc:geth-testnet/datadir/geth.ipc
 
     --rpcaddr "192.168.0.29" 设置暴露对外的ip节点
 
@@ -226,5 +229,15 @@
     whisper/whisperv2	Whisper Poc-1实现
     whisper/whisperv5	Whisper协议(版本5)
     whisper/whisperv6	--
+
+
+## eth rpc 部分理解
+    eth_newFilter  构建特定需要的匹配项，返回filterId，object
+    eth_newBlockFilter 新块到来的匹配项，返回filterId，无参数
+    eth_newPendingTransactionFilter 准备交易检查状态是否变化，返回filterId，无参数
+
+    eth_getFilterChanges 指定filterId返回变化的数据，上次轮询后的数据将不会再里面
+    eth_getFilterLogs 指定filterId的所有日志，返回同上
+    eth_getLogs 指定object的所有日志，无需filterId，返回同上
 
 

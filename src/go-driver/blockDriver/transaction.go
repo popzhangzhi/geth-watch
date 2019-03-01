@@ -143,47 +143,47 @@ func SendRowTransaction(from string, fromPrivateKey string, to string, amountS s
 
 //做监听，每次监听都生成不同的filterId
 //注意失效，只有创建后的交易才会记录，该id存在内存中，重启节点后，需要重启开启
-func WatchNewBlock() string {
+type FileterObject struct {
+	FromBlock string      `json:"fromblock,omitempty"`
+	ToBlock   string      `json:"toblock,omitempty"`
+	Address   interface{} `json:"address,omitempty"`
+	Topics    interface{} `json:"topics,omitempty"`
+}
+
+func WatchBlock(object FileterObject) string {
 	ctx := context.Background()
-	err, filterId := Client.WatchNewBlockFilter(ctx)
+	err, filterId := Client.CreateNewFilter(ctx, object)
 	if err != nil {
-		fmt.Println("watchNewBlock", err)
+		fmt.Println("watchBlock", err)
+		IoStartLogErr("watchBlock", fmt.Sprint(err))
 	}
 
-	return filterId.(string)
-	//0x71014d3030a97f16e54e5dced87441a6 0 timeout
-	//0x27c81ece4c628f6064d1b705880cf355 1 5.42 - 58 timeout 16
+	return filterId
 
-	//0xef7586e6f3db8dc6ec635d7f29e6e3f -- 5.44 -59 timeout 15
-	//0xffdcd82615f0bfc817621ca140950132 -- 5.42
-	//0x20490d36d2b8091047de433c622ac7bc  6.02-6.07
-	//0xe2640ac978ce082a5bdb5316c3b00d11 6.13
-
-	//19：09 10 11 13
 }
 
 /*
-	调用watchNewBlock接口后，根据fillterId来接受新块
+	WatchBlock，根据fillterId来接受块
 */
-func GetNewBlock(filterId string) []string {
+func GetBlock(filterId string) []types.Log {
 
 	ctx := context.Background()
-	err, rel := Client.GetNewFilterChanges(ctx, filterId)
-	//err, rel := Client.GetNewFilterLog(ctx, filterId)
-	//结果
-	var res []string
+	err, res := Client.GetFilterChanges(ctx, filterId)
 
 	if err != nil {
-		if GetInstance().Debug {
-			fmt.Println("getNewBlock", err)
-		}
-		return res
-	}
 
-	if rel != nil {
-		for _, v := range rel.([]interface{}) {
-			res = append(res, v.(string))
-		}
+		fmt.Println("getFilterChanges", err)
+		IoStartLogErr("getFilterChanges", fmt.Sprint(err))
+
 	}
+	getLog()
 	return res
+}
+
+func getLog() {
+	ctx := context.Background()
+	err, res := Client.FilterLogs(ctx, ethereum.FilterQuery{nil, big.NewInt(0), nil,
+		[]common.Address{common.HexToAddress("0x28172D45396753e4226D1F020849D97eEDB9bcEc")}, nil})
+	fmt.Println(err)
+	fmt.Println(res)
 }

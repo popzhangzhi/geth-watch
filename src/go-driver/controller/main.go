@@ -83,23 +83,28 @@ func searchBlock() {
 	blockDriver.DoEthclientDial()
 
 	allAddresses := GetInstance().GetAllAddresses()
-
+	//加入测试节点主地址
 	baseAddress := [][]byte{[]byte(coinbase)}
+
 	account := append(allAddresses, baseAddress...)
 
-	for _, str := range account {
+	for k, str := range account {
 		amount, _ := blockDriver.GetBalance(string(str))
-		fmt.Println(string(str), blockDriver.FromWei(amount), "ETH")
+		if string(str) == coinbase {
+			fmt.Println("coinbase")
+		}
+		fmt.Println(k, string(str), blockDriver.FromWei(amount), "ETH")
 	}
 
-	//监听事件，todo 如果filterId过期自动新生成一个filerId
-	filterId := blockDriver.WatchNewBlock()
+	//监听事件，当前只扫相关的块
+
+	object := blockDriver.FileterObject{
+		"0x1", "latest", GetInstance().GetAllAddressesToString(), nil}
+	filterId := blockDriver.WatchBlock(object)
+
 	dealBlockProcess(filterId)
-
-	//24到29
-
-	//daemon()
 	//test_sendTransaction()
+
 }
 
 /*
@@ -108,21 +113,23 @@ func searchBlock() {
 */
 func dealBlockProcess(filterId string) {
 
-	//开10个线程来接受块
-	for i := 0; i < 10; i++ {
-		go func() {
-
-		}()
-	}
-	blocks := blockDriver.GetNewBlock(filterId)
+	////开10个线程来接受块
+	//for i := 0; i < 10; i++ {
+	//	go func() {
+	//
+	//	}()
+	//}
+	fmt.Println(filterId)
+	blocks := blockDriver.GetBlock(filterId)
 	fmt.Println(blocks)
 }
 
-//  eth.sendTransaction({from:"0x0b90ba04fc3520666297a1da31b1f5ff313a475b",to:"0x28172D45396753e4226D1F020849D97eEDB9bcEc",value:web3.toWei(50000,"ether")})
+//eth.sendTransaction({from:"0x0b90ba04fc3520666297a1da31b1f5ff313a475b",to:"0x28172D45396753e4226D1F020849D97eEDB9bcEc",value:web3.toWei(50000,"ether")})
 func test_sendTransaction() {
 	allAddress := GetInstance().GetAllAddresses()
 	key := GetInstance().GetKey(string(allAddress[0]))
 	txid := blockDriver.SendRowTransaction(string(allAddress[0]), string(key), string(allAddress[1]), `1`, 0, 0)
+
 	fmt.Println(txid)
 }
 
