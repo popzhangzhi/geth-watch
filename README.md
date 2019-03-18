@@ -232,12 +232,13 @@
 
 
 ## eth rpc 部分理解
-    eth_newFilter  构建特定需要的匹配项，返回filterId，object
-    eth_newBlockFilter 新块到来的匹配项，返回filterId，无参数
-    eth_newPendingTransactionFilter 准备交易检查状态是否变化，返回filterId，无参数
+    eth_newFilter  构建特定需要的匹配项，返回filterId，object  | eth_getFilterChanges接收
+    eth_newBlockFilter 新块到来的匹配项，返回filterId，无参数  | eth_getFilterChanges接收
+    eth_newPendingTransactionFilter 准备交易检查状态是否变化，返回filterId，无参数 | eth_getFilterChanges接收
 
     eth_getFilterChanges 指定filterId返回变化的数据，上次轮询后的数据将不会再里面
-    eth_getFilterLogs 指定filterId的所有日志，返回同上
-    eth_getLogs 指定object的所有日志，无需filterId，返回同上
+    ————以下是查看filter的日志
+    eth_getFilterLogs 指定filterId的所有日志，返回同上 本次返回无需接收
+    eth_getLogs 指定object的所有日志，无需filterId，返回同上 本次返回无需接收
 
 

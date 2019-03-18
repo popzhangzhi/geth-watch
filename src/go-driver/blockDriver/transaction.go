@@ -152,10 +152,13 @@ type FileterObject struct {
 
 func WatchBlock(object FileterObject) string {
 	ctx := context.Background()
-	err, filterId := Client.CreateNewFilter(ctx, object)
+	//todo 接受新块可以成功返回，接受filter返回总是空
+	err, filterId := Client.CreateFilter(ctx, object)
 	if err != nil {
+		//todo 随机出现不可解析的json,导致filterid为空
 		fmt.Println("watchBlock", err)
 		IoStartLogErr("watchBlock", fmt.Sprint(err))
+		filterId = ""
 	}
 
 	return filterId
@@ -165,7 +168,7 @@ func WatchBlock(object FileterObject) string {
 /*
 	WatchBlock，根据fillterId来接受块
 */
-func GetBlock(filterId string) []types.Log {
+func GetBlock(filterId string) []interface{} {
 
 	ctx := context.Background()
 	err, res := Client.GetFilterChanges(ctx, filterId)
@@ -176,14 +179,16 @@ func GetBlock(filterId string) []types.Log {
 		IoStartLogErr("getFilterChanges", fmt.Sprint(err))
 
 	}
-	getLog()
+	fmt.Println(res)
+	//getLog()
 	return res
 }
 
 func getLog() {
 	ctx := context.Background()
-	err, res := Client.FilterLogs(ctx, ethereum.FilterQuery{nil, big.NewInt(0), nil,
-		[]common.Address{common.HexToAddress("0x28172D45396753e4226D1F020849D97eEDB9bcEc")}, nil})
+	//a := []common.Address{common.HexToAddress("0x28172D45396753e4226D1F020849D97eEDB9bcEc")}
+	err, res := Client.FilterLogs(ctx, ethereum.FilterQuery{nil, nil, nil,
+		nil, nil})
 	fmt.Println(err)
 	fmt.Println(res)
 }

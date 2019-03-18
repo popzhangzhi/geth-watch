@@ -384,8 +384,8 @@ func (ec *Client) SubscribeFilterLogs(ctx context.Context, q ethereum.FilterQuer
 
 func toFilterArg(q ethereum.FilterQuery) (interface{}, error) {
 	arg := map[string]interface{}{
-		"address": q.Addresses,
-		"topics":  q.Topics,
+	//"address": q.Addresses,
+	//"topics":  q.Topics,
 	}
 	if q.BlockHash != nil {
 		arg["blockHash"] = *q.BlockHash
@@ -535,7 +535,7 @@ func toCallArg(msg ethereum.CallMsg) interface{} {
 /*
 	根据object生成filterid
 */
-func (ec *Client) CreateNewFilter(ctx context.Context, object interface{}) (error, string) {
+func (ec *Client) CreateFilter(ctx context.Context, object interface{}) (error, string) {
 
 	var result hexutil.Bytes
 
@@ -545,16 +545,25 @@ func (ec *Client) CreateNewFilter(ctx context.Context, object interface{}) (erro
 
 }
 
+func (ec *Client) CreateNewBlockFilter(ctx context.Context) (error, string) {
+	var result hexutil.Bytes
+	error := ec.c.CallContext(ctx, &result, "eth_newBlockFilter")
+
+	return error, result.String()
+
+}
+
 /*
 	根据filteid 实现 GetFilterChanges
 */
 
-func (ec *Client) GetFilterChanges(ctx context.Context, filterId string) (error, []types.Log) {
+func (ec *Client) GetFilterChanges(ctx context.Context, filterId string) (error, []interface{}) {
 
-	var result []types.Log
+	//var result []types.Log
+	var a []interface{}
 
-	error := ec.c.CallContext(ctx, &result, "eth_getFilterChanges", filterId)
+	error := ec.c.CallContext(ctx, &a, "eth_getFilterChanges", filterId) //eth_getFilterLogs eth_getFilterChanges
 
-	return error, result
+	return error, a
 
 }

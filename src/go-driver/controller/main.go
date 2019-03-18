@@ -3,11 +3,14 @@ package controller
 import (
 	"bytes"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/spf13/viper"
 	"go-driver/blockDriver"
 	. "go-driver/common"
+	"math/big"
 	"os"
 	"strconv"
+	"time"
 )
 
 /*
@@ -16,20 +19,42 @@ import (
 	3. 1，2 支持合约
 	4. 运行时修改运行时参数扩展
 */
-//解析后最终秘钥key
-var orginKey []byte
+//filterid
+var filterId = ""
 
 func MainEntry() {
 	IoBr()
 	IoStartLog("启动钱包...")
 
-	//写入runtimeEnv 用户后续控制台来操作运行时配置
+	//写入runtimeEnv 用户后续控制台来操作运行时配置,注意yaml文件字符串可以省略双引号，但是key与value间的空格不能少，少了
+	//无法解析成功该文件
 	debug := viper.GetBool(`base.debug`)
 	GetInstance().SetDebug(debug)
 	//解析地址存入单例
 	setAddresses()
+	getDebugInfo()
 	//扫块
 	searchBlock()
+}
+
+func getDebugInfo() {
+	//连接node
+	blockDriver.DoEthclientDial()
+
+	allAddresses := GetInstance().GetAllAddresses()
+	//加入测试节点主地址
+	baseAddress := [][]byte{[]byte(coinbase)}
+
+	account := append(allAddresses, baseAddress...)
+
+	for k, str := range account {
+		amount, _ := blockDriver.GetBalance(string(str))
+		if string(str) == coinbase {
+			fmt.Println("coinbase")
+		}
+		fmt.Println(k, string(str), blockDriver.FromWei(amount), "ETH")
+
+	}
 }
 
 /*
@@ -82,27 +107,22 @@ func searchBlock() {
 	//连接node
 	blockDriver.DoEthclientDial()
 
-	allAddresses := GetInstance().GetAllAddresses()
-	//加入测试节点主地址
-	baseAddress := [][]byte{[]byte(coinbase)}
+	//监听事件，当前只扫相关的块,filterid存在，开启getfilterchange线程，否则再次生词filterid在开启getfilterchange线程
 
-	account := append(allAddresses, baseAddress...)
-
-	for k, str := range account {
-		amount, _ := blockDriver.GetBalance(string(str))
-		if string(str) == coinbase {
-			fmt.Println("coinbase")
-		}
-		fmt.Println(k, string(str), blockDriver.FromWei(amount), "ETH")
+checkFilterId:
+	blockHeight := viper.GetInt(`wallet.height`)
+	blockHeightOX := hexutil.EncodeBig(big.NewInt(int64(blockHeight)))
+	//GetInstance().GetAllAddressesToString()
+	object := blockDriver.FileterObject{
+		blockHeightOX, "latest", nil, nil}
+	filterId = blockDriver.WatchBlock(object)
+	if filterId == "" {
+		goto checkFilterId
+	} else {
+		fmt.Println("filterId", filterId)
+		dealBlockProcess(filterId)
 	}
 
-	//监听事件，当前只扫相关的块
-
-	object := blockDriver.FileterObject{
-		"0x1", "latest", GetInstance().GetAllAddressesToString(), nil}
-	filterId := blockDriver.WatchBlock(object)
-
-	dealBlockProcess(filterId)
 	//test_sendTransaction()
 
 }
@@ -113,15 +133,16 @@ func searchBlock() {
 */
 func dealBlockProcess(filterId string) {
 
+	time.Sleep(20 * time.Second)
 	////开10个线程来接受块
 	//for i := 0; i < 10; i++ {
 	//	go func() {
 	//
 	//	}()
 	//}
-	fmt.Println(filterId)
+
 	blocks := blockDriver.GetBlock(filterId)
-	fmt.Println(blocks)
+	fmt.Println("blocks", blocks)
 }
 
 //eth.sendTransaction({from:"0x0b90ba04fc3520666297a1da31b1f5ff313a475b",to:"0x28172D45396753e4226D1F020849D97eEDB9bcEc",value:web3.toWei(50000,"ether")})

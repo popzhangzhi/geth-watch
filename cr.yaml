@@ -8,11 +8,11 @@ node:
     rpcUrl: "http://localhost:8545"
 
 sign:
-    signServerUrl: http://127.0.0.1:8999
+    signServerUrl: "http://127.0.0.1:8999"
     chainID: 1
 
 wallet:
-    height: 5455676
+    height: 1
     coldAddress: 0xd64a30ad74f85dac6429f0f6398c5ec01dd757d8
     maxStock: 1000
     maxBalance: 1000
