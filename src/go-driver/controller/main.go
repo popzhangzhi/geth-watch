@@ -10,7 +10,6 @@ import (
 	"math/big"
 	"os"
 	"strconv"
-	"time"
 )
 
 /*
@@ -32,9 +31,13 @@ func MainEntry() {
 	GetInstance().SetDebug(debug)
 	//解析地址存入单例
 	setAddresses()
+	//链接rpc-node
+	blockDriver.DoEthclientDial()
+
 	getDebugInfo()
 	//扫块
-	searchBlock()
+
+	initWatchBlock()
 }
 
 func getDebugInfo() {
@@ -102,28 +105,39 @@ func setAddresses() {
 /*
  扫块
 */
-func searchBlock() {
+func initWatchBlock() {
 
-	//连接node
-	blockDriver.DoEthclientDial()
+	//获取起始块
+	blockStart := viper.GetInt(`wallet.height`)
+	IoStartLog("扫块起始块高" + string(blockStart))
+	blockStartNumber := big.NewInt(int64(blockStart))
+	//获取终止块
+	blockEndNumber := blockDriver.GetCurrentBlockNumber()
 
+	watchBlock(blockStartNumber, blockEndNumber)
+
+	//test_sendTransaction()
+
+}
+
+/**
+特定项查找链上数据
+*/
+func getFilterData() {
 	//监听事件，当前只扫相关的块,filterid存在，开启getfilterchange线程，否则再次生词filterid在开启getfilterchange线程
-
 checkFilterId:
 	blockHeight := viper.GetInt(`wallet.height`)
 	blockHeightOX := hexutil.EncodeBig(big.NewInt(int64(blockHeight)))
 	//GetInstance().GetAllAddressesToString()
 	object := blockDriver.FileterObject{
-		blockHeightOX, "latest", nil, nil}
-	filterId = blockDriver.WatchBlock(object)
+		blockHeightOX, "latest", coinbase, nil}
+	filterId = blockDriver.WatchFilterBlock(object)
 	if filterId == "" {
 		goto checkFilterId
 	} else {
 		fmt.Println("filterId", filterId)
-		dealBlockProcess(filterId)
+		blockDriver.GetFilterData(filterId)
 	}
-
-	//test_sendTransaction()
 
 }
 
@@ -131,18 +145,44 @@ checkFilterId:
 	todo 接受到块后，根据块数量来开启线程。最小10个，最大20个
 
 */
-func dealBlockProcess(filterId string) {
+func watchBlock(blockHeight *big.Int, blockEndNumber *big.Int) {
 
-	time.Sleep(20 * time.Second)
-	////开10个线程来接受块
-	//for i := 0; i < 10; i++ {
-	//	go func() {
-	//
-	//	}()
-	//}
+	if blockHeight.Cmp(blockEndNumber) >= 0 {
+		//起始块大于终止块，return
+		IoStartLogErr("watchBlock", "起始块大于终止块退出扫块")
+		return
+	}
 
-	blocks := blockDriver.GetBlock(filterId)
-	fmt.Println("blocks", blocks)
+	currentRunHeight := make(chan int64)
+	//声明协程池
+	p := NewRouinePoor(10)
+	//先赋值chan在读取，防止堵塞
+	go func() {
+		for i := blockHeight.Int64(); i <= blockEndNumber.Int64(); i++ {
+			currentRunHeight <- i
+		}
+	}()
+
+	//把块高的task出入p的接收队列
+	go func() {
+
+		for i := blockHeight.Int64(); i <= blockEndNumber.Int64(); i++ {
+			//time.Sleep(1 * time.Second)
+			t := NewTask(func(workId int) {
+				c := <-currentRunHeight
+				fmt.Println("workId:" + strconv.Itoa(workId) + " 当前块高:" + strconv.FormatInt(c, 10))
+			})
+			p.ReveiceChannel <- t
+
+		}
+
+	}()
+	p.Run()
+	fmt.Println("runend")
+	close(currentRunHeight)
+
+	//blocks := blockDriver.GetBlock(filterId)
+	//fmt.Println("blocks", blocks)
 }
 
 //eth.sendTransaction({from:"0x0b90ba04fc3520666297a1da31b1f5ff313a475b",to:"0x28172D45396753e4226D1F020849D97eEDB9bcEc",value:web3.toWei(50000,"ether")})

@@ -384,8 +384,8 @@ func (ec *Client) SubscribeFilterLogs(ctx context.Context, q ethereum.FilterQuer
 
 func toFilterArg(q ethereum.FilterQuery) (interface{}, error) {
 	arg := map[string]interface{}{
-	//"address": q.Addresses,
-	//"topics":  q.Topics,
+		"address": q.Addresses,
+		"topics":  q.Topics,
 	}
 	if q.BlockHash != nil {
 		arg["blockHash"] = *q.BlockHash

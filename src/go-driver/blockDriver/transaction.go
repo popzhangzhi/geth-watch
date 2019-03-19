@@ -144,19 +144,18 @@ func SendRowTransaction(from string, fromPrivateKey string, to string, amountS s
 //做监听，每次监听都生成不同的filterId
 //注意失效，只有创建后的交易才会记录，该id存在内存中，重启节点后，需要重启开启
 type FileterObject struct {
-	FromBlock string      `json:"fromblock,omitempty"`
-	ToBlock   string      `json:"toblock,omitempty"`
+	FromBlock string      `json:"fromBlock,omitempty"`
+	ToBlock   string      `json:"toBlock,omitempty"`
 	Address   interface{} `json:"address,omitempty"`
 	Topics    interface{} `json:"topics,omitempty"`
 }
 
-func WatchBlock(object FileterObject) string {
+func WatchFilterBlock(object FileterObject) string {
 	ctx := context.Background()
-	//todo 接受新块可以成功返回，接受filter返回总是空
+	//todo CreateNewBlockFilter可以成功返回，CreateFilter方法返回总数空
 	err, filterId := Client.CreateFilter(ctx, object)
 	if err != nil {
-		//todo 随机出现不可解析的json,导致filterid为空
-		fmt.Println("watchBlock", err)
+		fmt.Println("WatchFilterBlock", err)
 		IoStartLogErr("watchBlock", fmt.Sprint(err))
 		filterId = ""
 	}
@@ -166,9 +165,9 @@ func WatchBlock(object FileterObject) string {
 }
 
 /*
-	WatchBlock，根据fillterId来接受块
+	根据fillterId来接受块数据
 */
-func GetBlock(filterId string) []interface{} {
+func GetFilterData(filterId string) []interface{} {
 
 	ctx := context.Background()
 	err, res := Client.GetFilterChanges(ctx, filterId)
@@ -186,9 +185,28 @@ func GetBlock(filterId string) []interface{} {
 
 func getLog() {
 	ctx := context.Background()
-	//a := []common.Address{common.HexToAddress("0x28172D45396753e4226D1F020849D97eEDB9bcEc")}
-	err, res := Client.FilterLogs(ctx, ethereum.FilterQuery{nil, nil, nil,
-		nil, nil})
+	a := []common.Address{common.HexToAddress("0x0b90ba04fc3520666297a1da31b1f5ff313a475b")}
+	fmt.Println(a)
+	err, res := Client.FilterLogs(ctx, ethereum.FilterQuery{nil, big.NewInt(1), nil,
+		a, nil})
 	fmt.Println(err)
 	fmt.Println(res)
+}
+
+/**
+获取当前块高
+*/
+func GetCurrentBlockNumber() *big.Int {
+	ctx := context.Background()
+	res, err := Client.HeaderByNumber(ctx, nil)
+
+	if err != nil {
+
+		fmt.Println("getCurrentBlockNumber", err)
+		IoStartLogErr("getCurrentBlockNumber", fmt.Sprint(err))
+		return big.NewInt(0)
+	}
+
+	return res.Number
+
 }
