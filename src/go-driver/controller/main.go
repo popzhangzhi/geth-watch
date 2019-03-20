@@ -152,37 +152,34 @@ func watchBlock(blockHeight *big.Int, blockEndNumber *big.Int) {
 		IoStartLogErr("watchBlock", "起始块大于终止块退出扫块")
 		return
 	}
-
-	currentRunHeight := make(chan int64)
 	//声明协程池
 	p := NewRouinePoor(10)
-	//先赋值chan在读取，防止堵塞
-	go func() {
-		for i := blockHeight.Int64(); i <= blockEndNumber.Int64(); i++ {
-			currentRunHeight <- i
-		}
-	}()
+	start := blockHeight.Int64()
+	end := blockEndNumber.Int64()
 
-	//把块高的task出入p的接收队列
+	//赋值块高和协程允许的闭包函数到channel
 	go func() {
 
-		for i := blockHeight.Int64(); i <= blockEndNumber.Int64(); i++ {
-			//time.Sleep(1 * time.Second)
-			t := NewTask(func(workId int) {
-				c := <-currentRunHeight
-				fmt.Println("workId:" + strconv.Itoa(workId) + " 当前块高:" + strconv.FormatInt(c, 10))
-			})
+		for i := start; i <= end; i++ {
+
+			arg := make(map[string]string)
+			arg["blockNumber"] = strconv.FormatInt(i, 10)
+			arg["taskId"] = arg["blockNumber"]
+
+			t := NewTask(func(params map[string]string) {
+				fmt.Println("workId:" + params["workId"] + " 当前块高:" + params["blockNumber"])
+			}, arg)
+
 			p.ReveiceChannel <- t
 
 		}
+		//赋值成功后关闭channel
+		p.Close()
 
 	}()
-	p.Run()
-	fmt.Println("runend")
-	close(currentRunHeight)
 
-	//blocks := blockDriver.GetBlock(filterId)
-	//fmt.Println("blocks", blocks)
+	p.Run()
+
 }
 
 //eth.sendTransaction({from:"0x0b90ba04fc3520666297a1da31b1f5ff313a475b",to:"0x28172D45396753e4226D1F020849D97eEDB9bcEc",value:web3.toWei(50000,"ether")})
