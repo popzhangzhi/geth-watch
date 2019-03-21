@@ -7,9 +7,11 @@ import (
 	"github.com/spf13/viper"
 	"go-driver/blockDriver"
 	. "go-driver/common"
+	"go-driver/model"
 	"math/big"
 	"os"
 	"strconv"
+	"time"
 )
 
 /*
@@ -38,6 +40,8 @@ func MainEntry() {
 	//扫块
 
 	initWatchBlock()
+	//常驻进程，保证程序一直在刷块
+	//daemon()
 }
 
 func getDebugInfo() {
@@ -109,12 +113,10 @@ func initWatchBlock() {
 
 	//获取起始块
 	blockStart := viper.GetInt(`wallet.height`)
-	IoStartLog("扫块起始块高" + string(blockStart))
+	IoStartLog("扫块起始块高:" + strconv.Itoa(blockStart))
 	blockStartNumber := big.NewInt(int64(blockStart))
-	//获取终止块
-	blockEndNumber := blockDriver.GetCurrentBlockNumber()
 
-	watchBlock(blockStartNumber, blockEndNumber)
+	watchBlock(blockStartNumber, nil)
 
 	//test_sendTransaction()
 
@@ -142,14 +144,18 @@ checkFilterId:
 }
 
 /*
-	todo 接受到块后，根据块数量来开启线程。最小10个，最大20个
-
+	扫块主函数
 */
 func watchBlock(blockHeight *big.Int, blockEndNumber *big.Int) {
 
+	if blockEndNumber == nil {
+		//获取终止块
+		blockEndNumber = blockDriver.GetCurrentBlockNumber()
+	}
 	if blockHeight.Cmp(blockEndNumber) > 0 {
 		//起始块大于终止块，return
 		IoStartLogErr("watchBlock", "起始块大于终止块退出扫块")
+		panic("起始块大于终止块退出扫块,退出程序")
 		return
 	}
 	//声明协程池
@@ -180,25 +186,62 @@ func watchBlock(blockHeight *big.Int, blockEndNumber *big.Int) {
 
 }
 
+//获取块信息，获取块中交易信息
 func getBlockData(params map[string]string) {
-	data := blockDriver.GetBlock(params["blockNumber"])
+	data, err := blockDriver.GetBlock(params["blockNumber"])
+	if err != nil {
+		IoStartLogErr("getBlockData", "中断该块"+params["blockNumber"]+"的扫块协程")
+		return
+	}
+	mainChainData := make(map[string]interface{})
 	blockHash := data.Hash().Hex()
+	blockNumber := data.Number()
+	mainChainData["hash"] = blockHash
+	mainChainData["blockNumber"] = blockNumber.Int64()
+	mainChainData["addtime"] = GetDatetime()
+
 	txs := data.Transactions()
 
 	for _, tx := range txs {
 		txHash := tx.Hash()
 		//获取交易信息，
-		// TODO 用协程池来并发处理任务
-		from, txData := blockDriver.GetTxData(txHash)
+		from, txData, err := blockDriver.GetTxData(txHash)
+		if err != nil {
+			IoStartLogErr("getBlockData", "中断该块"+params["blockNumber"]+"的扫块协程。中断tx:"+txHash.Hex())
+			return
+		}
 		fmt.Println("from", from.Hex())
 		json, _ := txData.MarshalJSON()
 		fmt.Println(string(json))
 
 	}
-	fmt.Println("blockHash", blockHash)
 
-	fmt.Println("workId:" + params["workId"] + " 当前块高:" + params["blockNumber"])
+	//所有交易成功读出，开始入库。记录读过了该块，并且记录系统用户地址的交易
 
+	_, err = model.InsertMainChain(mainChainData)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	IoStartLog(fmt.Sprint("workId:" + params["workId"] + " 完成扫块，块高:" + params["blockNumber"] + " " + blockHash))
+
+}
+
+/*
+守护进程
+*/
+
+func daemon() {
+
+	IoStartLog("启动守护进程")
+	timer1 := time.NewTicker(10 * time.Second)
+	for {
+		select {
+		case <-timer1.C:
+			//todo 获取当前的高度，在扫块
+			watchBlock(big.NewInt(1), nil)
+		}
+	}
 }
 
 //eth.sendTransaction({from:"0x0b90ba04fc3520666297a1da31b1f5ff313a475b",to:"0x28172D45396753e4226D1F020849D97eEDB9bcEc",value:web3.toWei(50000,"ether")})

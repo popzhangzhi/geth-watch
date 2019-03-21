@@ -1,5 +1,6 @@
 base:
     debug: true
+
 path:
     startLog: "./start.log"
     crLockFile: "./cr.lock"
@@ -11,8 +12,11 @@ sign:
     signServerUrl: "http://127.0.0.1:8999"
     chainID: 1
 
+db:
+    mysql: "root:123456@tcp(127.0.0.1:3306)/gethwatch?charset=utf8"
+
 wallet:
-    height: 42
+    height: 1
     coldAddress: 0xd64a30ad74f85dac6429f0f6398c5ec01dd757d8
     maxStock: 1000
     maxBalance: 1000

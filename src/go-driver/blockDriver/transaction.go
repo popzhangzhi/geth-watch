@@ -2,6 +2,7 @@ package blockDriver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/cmd/utils"
@@ -215,46 +216,58 @@ func GetCurrentBlockNumber() *big.Int {
 /**
 获取块信息
 */
-func GetBlock(string string) *types.Block {
+func GetBlock(string string) (*types.Block, error) {
 	number, err := strconv.ParseInt(string, 10, 64)
 	if err != nil {
-		IoStartLogErr("GetBlock", fmt.Sprint(err))
-		return nil
+		IoStartLogErr("GetBlock", fmt.Sprint(err)+" 参数:"+string)
+		return nil, err
 
 	}
 	if number == 0 {
 		IoStartLogErr("GetBlock", "块高"+string+"类型转换后为0")
-		return nil
+		return nil, errors.New("块高" + string + "类型转换后为0")
 	}
-
+	count := 0
+recycle:
 	ctx := context.Background()
 	res, err := Client.BlockByNumber(ctx, big.NewInt(number))
 
 	if err != nil {
 		fmt.Println("GetBlock", err)
 		IoStartLogErr("GetBlock", fmt.Sprint(err))
-		return nil
+		count++
+		if count < 3 {
+			goto recycle
+		}
+		return nil, err
 	}
 
-	return res
+	return res, nil
 
 }
 
 /**
 获取交易tx信息
 */
-func GetTxData(hash common.Hash) (*common.Address, *types.Transaction) {
+func GetTxData(hash common.Hash) (*common.Address, *types.Transaction, error) {
+	count := 0
+	//进行3次尝试，当出现错误时。
+recycle:
 	ctx := context.Background()
 	from, res, isPending, err := Client.TransactionByHash(ctx, hash)
 
 	if err != nil {
-		fmt.Println("GetTxData", err)
 		IoStartLogErr("GetTxData", fmt.Sprint(err))
-		return nil, nil
+		count++
+		if count < 3 {
+			goto recycle
+		}
+
+		return nil, nil, err
 	}
 	if isPending {
-		return nil, nil
+		return nil, nil, nil
 	}
 
-	return from, res
+	return from, res, nil
 }

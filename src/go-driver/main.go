@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
-	"time"
 )
 
 const commandName = "gethWatch"
@@ -183,18 +182,4 @@ func main() {
 
 	controller.MainEntry()
 
-}
-
-/*
-守护进程
-*/
-
-func daemon() {
-	timer1 := time.NewTicker(2 * time.Second)
-	for {
-		select {
-		case <-timer1.C:
-			fmt.Println("123213")
-		}
-	}
 }

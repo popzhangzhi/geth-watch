@@ -252,7 +252,7 @@ func (c *Client) Call(result interface{}, method string, args ...interface{}) er
 // can also pass nil, in which case the result is ignored.
 func (c *Client) CallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error {
 	msg, err := c.newMessage(method, args...)
-	fmt.Println("接口请求参数", msg)
+	//fmt.Println("接口请求参数", msg)
 	if err != nil {
 		return err
 	}

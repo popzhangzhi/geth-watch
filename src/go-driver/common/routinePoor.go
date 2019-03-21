@@ -78,7 +78,7 @@ func (P *Pool) worker(workId int) {
 	}
 }
 
-//记录对应taskId的任务已达成
+//记录对应taskId的任务运行结束，不记录成功或者失败，协程已成功结束
 func (P *Pool) workDone(taskId string) {
 	P.PoolRel.Lock.Lock()
 	defer P.PoolRel.Lock.Unlock()
@@ -100,7 +100,7 @@ func (P *Pool) Run() {
 	}
 	//利用共享所，保证所有任务支持完成后才会退出
 	for len(P.PoolRel.rel) != count {
-		time.Sleep(1 * time.Second)
+		time.Sleep(10 * time.Second)
 	}
 
 	close(P.CurrentChannel)
