@@ -12,7 +12,7 @@ sign:
     chainID: 1
 
 wallet:
-    height: 1
+    height: 42
     coldAddress: 0xd64a30ad74f85dac6429f0f6398c5ec01dd757d8
     maxStock: 1000
     maxBalance: 1000

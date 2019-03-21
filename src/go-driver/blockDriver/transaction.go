@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	. "go-driver/common"
 	"math/big"
+	"strconv"
 	"strings"
 )
 
@@ -194,7 +195,7 @@ func getLog() {
 }
 
 /**
-获取当前块高
+获取当前块高(没有块交易和伯叔块)
 */
 func GetCurrentBlockNumber() *big.Int {
 	ctx := context.Background()
@@ -209,4 +210,51 @@ func GetCurrentBlockNumber() *big.Int {
 
 	return res.Number
 
+}
+
+/**
+获取块信息
+*/
+func GetBlock(string string) *types.Block {
+	number, err := strconv.ParseInt(string, 10, 64)
+	if err != nil {
+		IoStartLogErr("GetBlock", fmt.Sprint(err))
+		return nil
+
+	}
+	if number == 0 {
+		IoStartLogErr("GetBlock", "块高"+string+"类型转换后为0")
+		return nil
+	}
+
+	ctx := context.Background()
+	res, err := Client.BlockByNumber(ctx, big.NewInt(number))
+
+	if err != nil {
+		fmt.Println("GetBlock", err)
+		IoStartLogErr("GetBlock", fmt.Sprint(err))
+		return nil
+	}
+
+	return res
+
+}
+
+/**
+获取交易tx信息
+*/
+func GetTxData(hash common.Hash) (*common.Address, *types.Transaction) {
+	ctx := context.Background()
+	from, res, isPending, err := Client.TransactionByHash(ctx, hash)
+
+	if err != nil {
+		fmt.Println("GetTxData", err)
+		IoStartLogErr("GetTxData", fmt.Sprint(err))
+		return nil, nil
+	}
+	if isPending {
+		return nil, nil
+	}
+
+	return from, res
 }

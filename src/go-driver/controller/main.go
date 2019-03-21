@@ -147,7 +147,7 @@ checkFilterId:
 */
 func watchBlock(blockHeight *big.Int, blockEndNumber *big.Int) {
 
-	if blockHeight.Cmp(blockEndNumber) >= 0 {
+	if blockHeight.Cmp(blockEndNumber) > 0 {
 		//起始块大于终止块，return
 		IoStartLogErr("watchBlock", "起始块大于终止块退出扫块")
 		return
@@ -166,9 +166,7 @@ func watchBlock(blockHeight *big.Int, blockEndNumber *big.Int) {
 			arg["blockNumber"] = strconv.FormatInt(i, 10)
 			arg["taskId"] = arg["blockNumber"]
 
-			t := NewTask(func(params map[string]string) {
-				fmt.Println("workId:" + params["workId"] + " 当前块高:" + params["blockNumber"])
-			}, arg)
+			t := NewTask(getBlockData, arg)
 
 			p.ReveiceChannel <- t
 
@@ -179,6 +177,27 @@ func watchBlock(blockHeight *big.Int, blockEndNumber *big.Int) {
 	}()
 
 	p.Run()
+
+}
+
+func getBlockData(params map[string]string) {
+	data := blockDriver.GetBlock(params["blockNumber"])
+	blockHash := data.Hash().Hex()
+	txs := data.Transactions()
+
+	for _, tx := range txs {
+		txHash := tx.Hash()
+		//获取交易信息，
+		// TODO 用协程池来并发处理任务
+		from, txData := blockDriver.GetTxData(txHash)
+		fmt.Println("from", from.Hex())
+		json, _ := txData.MarshalJSON()
+		fmt.Println(string(json))
+
+	}
+	fmt.Println("blockHash", blockHash)
+
+	fmt.Println("workId:" + params["workId"] + " 当前块高:" + params["blockNumber"])
 
 }
 
