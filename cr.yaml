@@ -18,21 +18,20 @@ db:
 wallet:
     height: 1
     coldAddress: 0xd64a30ad74f85dac6429f0f6398c5ec01dd757d8
-    maxStock: 1000
-    maxBalance: 1000
+    perCollect: 1000
+    maxBalance: 99999
     minBalance: 0
-    alarmtimeout: 10
-    phone: 008613800138000
+
 
 email:
-    url: 127.0.0.1:9080/email/send
-    sender: system@noreply.mail.bitmoga.com
-    reciever: xxxx@mobcolor.com
+    url: 
+    sender:
+    reciever: 
 
 sms:
-    url: http://127.0.0.1:8090/smsSend
-    proxy: montnets
-    type: 13
+    url:
+    proxy: 
+    type: 
 
 api:
     url: 
